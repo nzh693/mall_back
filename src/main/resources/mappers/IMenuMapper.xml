@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manage.mall.mappers.IMenuMapper">
+
+    <resultMap id="menuMap" type="com.manage.mall.entitys.TMenu">
+        <id property="id" column="id"></id>
+        <result property="name" column="name"></result>
+        <result property="path" column="path"></result>
+        <result property="iconpath" column="iconpath"></result>
+        <result property="power" column="power"></result>
+        <collection property="submenus" ofType="com.manage.mall.entitys.TSubmenu">
+            <id property="sId" column="s_id"></id>
+            <result property="sName" column="s_name"></result>
+            <result property="sPath" column="s_path"></result>
+            <result property="sIconpath" column="s_iconpath"></result>
+            <result property="sMenuid" column="s_menuid"></result>
+            <result property="sPower" column="s_power"></result>
+        </collection>
+    </resultMap>
+
+    <select id="getHomeMenu" resultMap="menuMap">
+        SELECT * from (SELECT * from t_menu  m where m.power>=#{power}) as main
+        LEFT OUTER JOIN
+        (SELECT * from t_submenu  sub where sub.s_power>=#{power}) as su on main.id=su.s_menuid
+    </select>
+
+
+</mapper>

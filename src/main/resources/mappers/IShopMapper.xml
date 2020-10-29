@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manage.mall.mappers.IShopMapper">
+
+
+    <insert id="addShopAndGetId" useGeneratedKeys="true" parameterType="com.manage.mall.entitys.Shop">
+      insert into shop(s_name, s_floor, s_size,sr_code,s_order)
+             values(#{sName},#{sFloor},#{sSize},#{srCode},#{sOrder})
+    </insert>
+
+
+
+
+</mapper>

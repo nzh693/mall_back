@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manage.mall.mappers.IContractMapper">
+
+
+    <resultMap id="contractMap" type="com.manage.mall.entitys.Contract">
+        <id property="cId" column="c_id"></id>
+        <result property="cOrder" column="c_order"></result>
+        <result property="cFileName" column="c_file_name"></result>
+        <result property="cPath" column="c_path"></result>
+        <result property="cStartTime" column="c_start_time"></result>
+        <result property="cEndTime" column="c_end_time"></result>
+        <result property="cSumTime" column="c_sum_time"></result>
+        <result property="cMoney" column="c_money"></result>
+        <result property="cPayType" column="c_pay_type"></result>
+        <result property="cState" column="c_state"></result>
+        <result property="cFixMoney" column="c_fix_money"></result>
+        <result property="cDelete" column="c_delete"></result>
+        <result property="rId" column="r_id"></result>
+        <result property="sId" column="s_id"></result>
+        <collection property="rentUser" ofType="com.manage.mall.entitys.RentUser">
+            <id property="rId" column="rid"></id>
+            <result property="rName" column="rname"></result>
+            <result property="rEmailAddress" column="remailaddress"></result>
+            <result property="rPhone" column="rphone"></result>
+            <result property="rPower" column="rpower"></result>
+
+
+        </collection>
+    </resultMap>
+
+
+    <insert id="addContract" useGeneratedKeys="true" parameterType="com.manage.mall.entitys.Contract">
+    insert into contract(c_order,c_file_name,c_path,c_start_time,c_end_time,c_sum_time,c_money,c_comment,
+    c_pay_type,c_state,c_fix_money,c_delete,r_id,s_id)
+    values(#{cOrder},#{cFileName},#{cPath},#{cStartTime},#{cEndTime},#{cSumTime},#{cMoney},#{cComment},
+    #{cPayType},#{cState},#{cFixMoney},#{cDelete},#{rId},#{sId})
+    </insert>
+
+
+    <select id="queryById" resultMap="contractMap">
+    SELECT * from (select c.*,r.r_id as rid,r.r_name as rname,r.r_email_address as remailaddress,r.r_phone as rphone,r.r_power as rpower  from contract c LEFT  JOIN  rent_user r ON c.r_id=r.r_id) as t
+    where c_id=#{id}
+    </select>
+
+
+</mapper>
