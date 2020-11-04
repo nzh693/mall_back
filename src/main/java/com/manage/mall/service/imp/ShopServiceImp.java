@@ -102,14 +102,14 @@ public class ShopServiceImp implements IShopService {
     public static Shop transformPo(ShopDto shopDto){
         Shop shop = new Shop();
         BeanUtils.copyProperties(shopDto,shop);
-        if (shopDto.getSrCode().equals("饰品")){
+        if (shopDto.getSrCode()!=null && shopDto.getSrCode().equals("饰品")){
             shop.setSrCode(111);
-        }else if(shopDto.getSrCode().equals("餐饮")){
+        }else if(shopDto.getSrCode()!=null && shopDto.getSrCode().equals("餐饮")){
             shop.setSrCode(211);
         }else {
             shop.setSrCode(311);
         }
-        if (shopDto.getsState().equals("签约")){
+        if (shopDto.getsState()!=null && shopDto.getsState().equals("签约")){
             shop.setsState(1);
         }else {
             shop.setsState(0);

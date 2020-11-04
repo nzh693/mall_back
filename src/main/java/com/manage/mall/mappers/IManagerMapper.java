@@ -26,7 +26,7 @@ public interface IManagerMapper {
     public List<Manager> queryManagerByPage(@Param("sIndex") Integer sIndex,@Param("limit") Integer limit);
 
 
-    @Insert("insert into  manager  values(null,#{mName},#{mStartTime},#{mEndTime},#{mSalary},#{mClerkCount},#{mEmallAddress},#{mPower})")
+    @Insert("insert into  manager  values(null,#{mName},#{mStartTime},#{mEndTime},#{mSalary},#{mClerkCount},#{mEmallAddress},#{mPassword},#{mPower})")
     public void save(Manager manager);
 
 }

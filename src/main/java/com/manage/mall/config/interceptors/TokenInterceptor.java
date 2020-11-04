@@ -24,7 +24,7 @@ public class TokenInterceptor implements HandlerInterceptor {
 
         Boolean verifyRe=false;
         String token=request.getHeader("token");
-         //第一次option请求，不带请求头参数;如果是OPTIONS请求，放行
+//         第一次option请求，不带请求头参数;如果是OPTIONS请求，放行
         if (HttpMethod.OPTIONS.toString().equals(request.getMethod())) {
             return true;
         } else if (token == null) {
@@ -34,7 +34,11 @@ public class TokenInterceptor implements HandlerInterceptor {
         else {
             //验证
             verifyRe =systemService.verifyToken(token);
+            if (!verifyRe){
+                response.setHeader("check","false");
+            }
         }
+
         logger.info("********拦截路径: "+request.getRequestURI()+" ---------验证结果: "+verifyRe);
         return verifyRe;
     }

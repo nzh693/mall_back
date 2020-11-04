@@ -87,8 +87,17 @@ public class SystemController {
             rentUser.setRPower(Long.valueOf(acount.getPower()));
             rentUserService.loginRentUser(rentUser);
         }
-        String EmailBody="<h4>Weclome to Regist</h4>" + "<h5>账 户 名 : <span>"+acount.getAcount()+"</span></h5>" +
-                "<h5>账户密码 : <span>"+acount.getPassword()+"</span></h5>";
+        String EmailBody="";
+        if (LOGIN_TYPE_ADMIN.equals(acount.getType())){
+            EmailBody="<h4>Weclome to Regist</h4>" + "<h5>账 户 名 : <span>"+acount.getAcount()+"</span></h5>" +
+                    "<h5>账户密码 : <span>"+acount.getPassword()+"</span></h5>";
+        }
+        else {
+             EmailBody="<h4>Weclome to Regist</h4>" + "<h5>登录账户 : <span>"+acount.getEmail()+"</span></h5>" +
+                    "<h5>账户密码 : <span>"+acount.getPassword()+"</span></h5>"+
+                     "<h5>登录链接 : <a href='http://193.112.195.243:8020/'>"+"点我登录"+"</a></h5>"
+             ;
+        }
         Email email = Email.buildSystemEmail("注册账户",EmailBody, acount.getEmail());
         emailServiceImp.sendSimpleMail(email);
         return re.ResposeSuccess("注册成功");
