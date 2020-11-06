@@ -25,6 +25,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("api/v1/common")
 @RestController
@@ -144,7 +145,6 @@ public class SystemController {
 
         String token=request.getHeader("token");
         systemService.destroyToken(token);
-
         return Respose.bulid().ResposeSuccess("退出成功");
     }
 
@@ -161,7 +161,7 @@ public class SystemController {
     }
 
     /**
-     * 向服务器上传个人简历文件
+     * 在后端上传合同文件至服务器本地
      *
      * @param file
      * @param request
@@ -173,13 +173,71 @@ public class SystemController {
         String fileSavePath = systemService.getFileSavePath();//文件存储路径
         String fileName = DealString.createFileName(file.getOriginalFilename(), "#");
         //上传文件
-        systemService.uploadFile(fileSavePath, fileName, file, request);
+        Boolean isSuccess = systemService.uploadFile(fileSavePath, fileName, file, request);
+        Contract contract=null;
+        if (isSuccess){ //解析到数据库
+            contract= contractService.resolveContractFile(file, fileSavePath,fileName);
+            if (contract!=null){
+                contractService.addContract(contract);
+            }
+        }
 
-        //解析到数据库
-        Contract contract = contractService.resolveContractFile(file, fileSavePath,fileName);
-        contractService.addContract(contract);
+        return Respose.bulid().ResposeSuccess("上传成功！");
+    }
+
+    /**
+     * 在服务器上传合同文件至阿里云
+     *
+     * @param file
+     * @param request
+     * @return
+     */
+    @RequestMapping(path = "/uploadFile/server")
+    public Respose uploadFileOnServerToOSS(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+
+        //路径需要改成阿里云的访问路径
+        String fileSavePath = systemService.getFileSavePath();//文件存储路径
+        String fileName = DealString.createFileName(file.getOriginalFilename(), "#");
+        //上传文件
+        Boolean isUpload = systemService.uploadOnServer(file);
+        Contract contract=null;
+        if (isUpload){ //解析到数据库
+            contract= contractService.resolveContractFile(file, fileSavePath,fileName);
+            if (contract!=null){
+                contractService.addContract(contract);
+            }
+        }
         return Respose.bulid().ResposeSuccess("上传成功");
     }
+
+
+    /**
+     * 获取上传签名
+     * @param file
+     * @param request
+     * @return
+     */
+    @RequestMapping(path = "/getPolicy")
+    public Respose uploadFileOnClientToOSS(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+
+        String fileSavePath = "阿里云路径";//文件存储路径
+        //上传文件
+        Map map = systemService.uploadOnClient(file);
+        Contract contract=null;
+        if (map!=null && map.size()>0){ //解析到数据库
+            contract= contractService.resolveContractFile(file, fileSavePath,file.getOriginalFilename());
+            if (contract!=null){
+                contractService.addContract(contract);
+            }
+        }
+        return Respose.bulid().ResposeSuccess(1,"获取成功",map);
+    }
+
+
+
+
+
+
 
     /**
      * 根据合同id下载合同文件

@@ -1,5 +1,10 @@
 package com.manage.mall.service.imp;
 
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.common.utils.BinaryUtil;
+import com.aliyun.oss.model.MatchMode;
+import com.aliyun.oss.model.PolicyConditions;
+import com.manage.mall.config.ConstantConfig;
 import com.manage.mall.dto.MonthAndCount;
 import com.manage.mall.entitys.Acount;
 import com.manage.mall.entitys.Admin;
@@ -9,7 +14,10 @@ import com.manage.mall.mappers.*;
 import com.manage.mall.service.ISystemService;
 import com.manage.mall.utils.JedisUtil;
 import com.manage.mall.vo.LoadVo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -19,48 +27,32 @@ import redis.clients.jedis.Jedis;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class SystemServiceImp implements ISystemService {
 
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-    private static final Integer ADMIN_Load=1;
-    private static final Integer MANAGER_Load=2;
-    private static final Integer RentUser_Load=3;
 
-    private static final String ADMIN_NAME="admin";
-    private static final String MANGEER_NAME="manager";
-
-    private static final String ASSISTANT_NAME="assistant";
-
-    private static final String CONTRACT_NAME="contract";
-    private static final String SHOP_NAME="shop";
-    private static final String STAFF_NAME="staff";
-    private static final String RENTUSER_NAME="rent_user";
+    @Autowired
+    private OSS oss;
 
 
-    private static final String CONTRACT_STATE_NORMAL="normal";
-    private static final String CONTRACT_STATE_BEYOND="beyond";
-    private static final String CONTRACT_STATE_SETTLE="settle";
-
-    private static final String CONTRACT_TOTAL="contract_total";
-
-    private static final String SHOP_RENT="rent";
-    private static final String SHOP_FREE="free";
-    private static final String SHOP_TOTAL="shop_total";
-    private static final String SHOP_RATE="shop_rate";
 
 
-    private static final String ECHAR_CONTRACT_START_TIME="start_time";
-    private static final String ECHAR_CONTRACT_END_TIME="end_time";
-    private static final String ECHAR_CONTRACT_BEYOND_TIME="beyond_time";
 
 
+    @Value("${oss.bucketName}")
+    private   String bucketName;
+
+    @Value("${spring.cloud.alicloud.access-key}")
+    private   String accessKeyId;
+
+    @Value("${spring.cloud.alicloud.oss.endpoint}")
+    private String endPoint;
 
 
 
@@ -93,7 +85,7 @@ public class SystemServiceImp implements ISystemService {
             lv=new LoadVo<Admin>();
             lv.setLoadObject(admin);
             lv.setUserPower((int) admin.getAPower());
-            lv.setLoadCode(ADMIN_Load);
+            lv.setLoadCode(ConstantConfig.ADMIN_LOAD);
             return lv;
         }
         Manager manager = managerMapper.queryManageByManage(acount.getAcount(), acount.getPassword());
@@ -101,7 +93,7 @@ public class SystemServiceImp implements ISystemService {
             lv=new LoadVo<Manager>();
             lv.setLoadObject(manager);
             lv.setUserPower((int) manager.getMPower());
-            lv.setLoadCode(MANAGER_Load);
+            lv.setLoadCode(ConstantConfig.MANAGER_LOAD);
             return lv;
         }
         RentUser rentUser = rentUserMapper.queryRentUserByRentUser(acount.getAcount(), acount.getPassword());
@@ -109,7 +101,7 @@ public class SystemServiceImp implements ISystemService {
             lv=new LoadVo<RentUser>();
             lv.setLoadObject(rentUser);
             lv.setUserPower((int) rentUser.getRPower());
-            lv.setLoadCode(RentUser_Load);
+            lv.setLoadCode(ConstantConfig.RentUser_LOAD);
             return lv;
         }
         return null;
@@ -140,10 +132,10 @@ public class SystemServiceImp implements ISystemService {
     @Override
     public HashMap<String,HashMap<String,Integer>> statisticBasicData() {
         HashMap basicMap = new HashMap<String, HashMap<String, Integer>>();
-        basicMap.put(RENTUSER_NAME,statisticRentUserMap());
-        basicMap.put(SHOP_NAME,statisticShopMap());
-        basicMap.put(CONTRACT_NAME,statisticContrasctMap());
-        basicMap.put(STAFF_NAME,statisticStaffMap());
+        basicMap.put(ConstantConfig.RENTUSER_NAME,statisticRentUserMap());
+        basicMap.put(ConstantConfig.SHOP_NAME,statisticShopMap());
+        basicMap.put(ConstantConfig.CONTRACT_NAME,statisticContrasctMap());
+        basicMap.put(ConstantConfig.STAFF_NAME,statisticStaffMap());
         return basicMap;
     }
 
@@ -153,36 +145,36 @@ public class SystemServiceImp implements ISystemService {
         int total=shopMapper.getCountAll();
         int rent=shopMapper.queryShopCountRent();
         int free=total-rent;
-        shopMap.put(SHOP_RENT,rent);
-        shopMap.put(SHOP_TOTAL,total);
-        shopMap.put(SHOP_FREE,free);
+        shopMap.put(ConstantConfig.SHOP_RENT,rent);
+        shopMap.put(ConstantConfig.SHOP_TOTAL,total);
+        shopMap.put(ConstantConfig.SHOP_FREE,free);
         return shopMap;
     }
 
     @Override
     public HashMap<String, Integer> statisticStaffMap() {
         HashMap<String, Integer> staffMap = new HashMap<>();
-        staffMap.put(ADMIN_NAME,adminMapper.queryCountAdmin());
-        staffMap.put(ASSISTANT_NAME,assistantMapper.queryCountAssistant());
-        staffMap.put(MANGEER_NAME,managerMapper.queryCountManager());
-        staffMap.put(RENTUSER_NAME,rentUserMapper.queryCountRentUser());
+        staffMap.put(ConstantConfig.ADMIN_NAME,adminMapper.queryCountAdmin());
+        staffMap.put(ConstantConfig.ASSISTANT_NAME,assistantMapper.queryCountAssistant());
+        staffMap.put(ConstantConfig.MANGEER_NAME,managerMapper.queryCountManager());
+        staffMap.put(ConstantConfig.RENTUSER_NAME,rentUserMapper.queryCountRentUser());
         return staffMap;
     }
 
     @Override
     public HashMap<String, Integer> statisticContrasctMap() {
         HashMap<String, Integer> contractMap = new HashMap<>();
-        contractMap.put(CONTRACT_STATE_NORMAL,contractMapper.queryContractStateEqulsEffect());
-        contractMap.put(CONTRACT_STATE_BEYOND,contractMapper.queryContractStateEqulsBeyondDate());
-        contractMap.put(CONTRACT_TOTAL,contractMapper.queryEffectiveCountAll());
-        contractMap.put(CONTRACT_STATE_SETTLE,contractMapper.queryContractStateEqulsSettle());
+        contractMap.put(ConstantConfig.CONTRACT_STATE_NORMAL,contractMapper.queryContractStateEqulsEffect());
+        contractMap.put(ConstantConfig.CONTRACT_STATE_BEYOND,contractMapper.queryContractStateEqulsBeyondDate());
+        contractMap.put(ConstantConfig.CONTRACT_TOTAL,contractMapper.queryEffectiveCountAll());
+        contractMap.put(ConstantConfig.CONTRACT_STATE_SETTLE,contractMapper.queryContractStateEqulsSettle());
         return contractMap;
     }
 
     @Override
     public HashMap<String, Integer> statisticRentUserMap() {
         HashMap<String, Integer> rentUserMap = new HashMap<>();
-        rentUserMap.put(RENTUSER_NAME,rentUserMapper.queryCountRentUser());
+        rentUserMap.put(ConstantConfig.RENTUSER_NAME,rentUserMapper.queryCountRentUser());
         return rentUserMap;
     }
 
@@ -200,9 +192,9 @@ public class SystemServiceImp implements ISystemService {
         int[] sArr = transformArray(statList);
         int[] eArr = transformArray(endList);
         int[] bArr = transformArray(beyondList);
-        echarMap.put(ECHAR_CONTRACT_START_TIME,sArr);
-        echarMap.put(ECHAR_CONTRACT_END_TIME,eArr);
-        echarMap.put(ECHAR_CONTRACT_BEYOND_TIME,bArr);
+        echarMap.put(ConstantConfig.ECHAR_CONTRACT_START_TIME,sArr);
+        echarMap.put(ConstantConfig.ECHAR_CONTRACT_END_TIME,eArr);
+        echarMap.put(ConstantConfig.ECHAR_CONTRACT_BEYOND_TIME,bArr);
         return echarMap;
     }
 
@@ -280,4 +272,54 @@ public class SystemServiceImp implements ISystemService {
     }
 
 
+    @Override
+    public Map<String, String> uploadOnClient(MultipartFile file) {
+        String host = "https://" + bucketName + "." + endPoint; // host的格式为 bucketname.endpoint
+        String formatDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        String dir = formatDate + "/"; // 用户上传文件时指定的前缀。
+        Map<String, String> respMap = new LinkedHashMap<String, String>();
+        try {
+            long expireTime = 30;
+            long expireEndTime = System.currentTimeMillis() + expireTime * 1000;
+            Date expiration = new Date(expireEndTime);
+            PolicyConditions policyConds = new PolicyConditions();
+            policyConds.addConditionItem(PolicyConditions.COND_CONTENT_LENGTH_RANGE, 0, 1048576000);
+            policyConds.addConditionItem(MatchMode.StartWith, PolicyConditions.COND_KEY, dir);
+
+            String postPolicy = oss.generatePostPolicy(expiration, policyConds);
+            byte[] binaryData = postPolicy.getBytes("utf-8");
+            String encodedPolicy = BinaryUtil.toBase64String(binaryData);
+            String postSignature = oss.calculatePostSignature(postPolicy);
+
+            respMap.put("accessid", accessKeyId);
+            respMap.put("policy", encodedPolicy);
+            respMap.put("signature", postSignature);
+            respMap.put("dir", dir);
+            respMap.put("host", host);
+            respMap.put("expire", String.valueOf(expireEndTime / 1000));
+
+        } catch (Exception e) {
+            // Assert.fail(e.getMessage());
+            logger.error(e.getMessage());
+        } finally {
+            oss.shutdown();
+            logger.debug(new Date().getTime() + "上传文件：" + file.getName());
+        }
+
+        return respMap;
+    }
+
+    @Override
+    public Boolean uploadOnServer(MultipartFile file) {
+        Boolean isSuceess=false;
+        try {
+            oss.putObject(bucketName,file.getOriginalFilename(),file.getInputStream());
+            isSuceess=true;
+        } catch (IOException e) {
+            logger.error("文件上传错误"+e.getMessage());
+        }finally {
+            oss.shutdown();
+        }
+        return isSuceess;
+    }
 }

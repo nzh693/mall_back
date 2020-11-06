@@ -1,12 +1,10 @@
 package com.manage.mall.service.imp;
 
-import com.manage.mall.config.interceptors.TokenInterceptor;
 import com.manage.mall.service.IEmailService;
 import com.manage.mall.vo.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;

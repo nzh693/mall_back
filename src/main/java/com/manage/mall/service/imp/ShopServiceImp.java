@@ -24,9 +24,6 @@ public class ShopServiceImp implements IShopService {
     @Autowired
     private IRentUserMapper rentUserMapper;
 
-    @Autowired
-    private IContractMapper contractMapper;
-
 
     @Override
     public Integer addShopGetId(Shop shop) {

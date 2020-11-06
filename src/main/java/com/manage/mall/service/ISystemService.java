@@ -20,7 +20,7 @@ public interface ISystemService<T> {
     public LoadVo<T> load(Acount acount);
 
     /**
-     * 上传文件
+     * 上传文件到服务器
      * @param path
      * @param fileName
      * @param file
@@ -28,6 +28,23 @@ public interface ISystemService<T> {
      * @return
      */
     public Boolean uploadFile(String path, String fileName, MultipartFile file, HttpServletRequest request);
+
+
+    /**
+     * 获取oss签名返回，前端传送到oss
+     * @param file
+     * @return
+     */
+    public Map<String,String> uploadOnClient(MultipartFile file);
+
+
+    /**
+     * 在服务器将文件上传
+     * @param file
+     */
+    public Boolean uploadOnServer(MultipartFile file);
+
+
 
     /***
      * 创建并返回存储文件的目录
@@ -104,6 +121,9 @@ public interface ISystemService<T> {
      * 定时任务：根据合同的结束时间修改合同的状态
      */
     public void  updateContractState();
+
+
+
 
 
 
