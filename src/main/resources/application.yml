@@ -3,21 +3,17 @@ server:
 
 spring:
   datasource:
-    username: nzh
+    username: tmt
     password: 123456
-    url: jdbc:mysql://193.112.195.243:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
+#    url: jdbc:mysql://193.112.195.243:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSourceC3P0Adapter
   servlet:
     multipart:
       max-file-size: 100MB
       max-request-size: 100MB
-  cloud:
-    alicloud:
-      access-key: LTAI4GC5r56UCqM8pfs3MPTK
-      secret-key: aetrH5EM7oHv7KY81dNqamq9Kcyl9I
-      oss:
-        endpoint: oss-cn-shanghai.aliyuncs.com
+
         
 mybatis:
   configuration:
